@@ -1,0 +1,50 @@
+name: CI/CD
+
+# Trigger workflow on push or pull request to master
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  main:
+    name: build and deploy application
+    runs-on: ubuntu-latest              # Type of machine to run job on
+    strategy:                           # Define different variations of an environment to run job
+      matrix:
+        node-version: [12.x]
+
+    steps:
+      # Stage to fetch a copy of the repository's code under $GITHUB_WORKSPACE
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Stage to set up node environment
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      # Stage to install dependencies in nodejs project
+      - name: Install dependencies
+        run: npm install
+
+      # TODO: Add a stage for running unit tests
+
+      # TODO: Add a stage for running cypress tests
+
+      # TODO: Add a stage to generate cypress videos and screenshots as artifacts
+
+      # Stage to deploy application to github page
+      - name: Deploy
+        run: |
+          git config --global user.name $user_name
+          git config --global user.email $user_email
+          git remote set-url origin https://${github_token}@github.com/${repository}
+          npm run deploy
+        env:
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          github_token: ${{ secrets.DEPLOY_ACCESS_TOKEN }}
+          repository: ${{ github.repository }}
